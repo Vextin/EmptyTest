@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 
-//I stole this almost directly from https://gist.github.com/KarlRamstedt/407d50725c7b6abeaf43aee802fdd88e 
+//Based on Karl Ramstedt's camera controller, with heavy modification https://gist.github.com/KarlRamstedt/407d50725c7b6abeaf43aee802fdd88e 
 public class CameraController : MonoBehaviour
 {
     public float Sensitivity
