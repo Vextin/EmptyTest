@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 
-//Based on Karl Ramstedt's camera controller, with heavy modification https://gist.github.com/KarlRamstedt/407d50725c7b6abeaf43aee802fdd88e 
+//I stole this almost directly from https://gist.github.com/KarlRamstedt/407d50725c7b6abeaf43aee802fdd88e 
 public class CameraController : MonoBehaviour
 {
     public float Sensitivity
@@ -60,9 +60,13 @@ public class CameraController : MonoBehaviour
 
         var xQuat = Quaternion.identity;
         //Quaternion.AngleAxis gives us a gimbal-lock-free clamping method in the form of AngleAxis
-        if (_secondsSinceStartedTransition <= _secondsToTransition)
+        var playerAngles = Quaternion.Angle(player.transform.rotation, player.AttachedVehicle.rotation);
+        if (playerAngles >= xRotationLimit)
         {
-            xQuat = Quaternion.RotateTowards(player.AttachedVehicle.rotation, Quaternion.AngleAxis(rotation.x, Vector3.up), xRotationLimit + 30f - (30f * (_secondsSinceStartedTransition/_secondsToTransition)));
+            xQuat = Quaternion.RotateTowards
+                (player.AttachedVehicle.rotation, 
+                Quaternion.AngleAxis(rotation.x, Vector3.up), 
+                playerAngles - (playerAngles * (_secondsSinceStartedTransition/_secondsToTransition)));
         }
         else
         {
