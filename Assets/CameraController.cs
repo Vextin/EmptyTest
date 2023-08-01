@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 
@@ -21,6 +22,11 @@ public class CameraController : MonoBehaviour
     const string xAxis = "Mouse X"; //Strings in direct code generate garbage, storing and re-using them creates no garbage
     const string yAxis = "Mouse Y";
 
+    [Tooltip("How many seconds over which to smoothly transition between clamped and unclamped view. 0 = instantaneous transition.")]
+    [SerializeField] float _secondsToTransition;
+    float _secondsSinceStartedTransition;
+    
+
     [SerializeField] PlayerController player;
 
     void Update()
@@ -37,6 +43,7 @@ public class CameraController : MonoBehaviour
 
     void DoVehicleCameraControls()
     {
+        _secondsSinceStartedTransition += Time.deltaTime;
         Vector2 mouseDelta = Input.GetAxis(xAxis) * Vector2.right + Input.GetAxis(yAxis) * Vector2.up;
 
         //add mouse movement to both axes of rotation
@@ -51,8 +58,16 @@ public class CameraController : MonoBehaviour
         //Create a quaternion to represent the rotation on each axis
         var yQuat = Quaternion.AngleAxis(rotation.y, Vector3.left);
 
+        var xQuat = Quaternion.identity;
         //Quaternion.AngleAxis gives us a gimbal-lock-free clamping method in the form of AngleAxis
-        var xQuat = Quaternion.RotateTowards(player.AttachedVehicle.rotation, Quaternion.AngleAxis(rotation.x, Vector3.up), xRotationLimit);
+        if (_secondsSinceStartedTransition <= _secondsToTransition)
+        {
+            xQuat = Quaternion.RotateTowards(player.AttachedVehicle.rotation, Quaternion.AngleAxis(rotation.x, Vector3.up), xRotationLimit + 30f - (30f * (_secondsSinceStartedTransition/_secondsToTransition)));
+        }
+        else
+        {
+            xQuat = Quaternion.RotateTowards(player.AttachedVehicle.rotation, Quaternion.AngleAxis(rotation.x, Vector3.up), xRotationLimit);
+        }
 
         //To keep our stored rotation the appropriate value, steal the euler y component of the xquat.
         rotation.x = xQuat.eulerAngles.y;
@@ -63,6 +78,7 @@ public class CameraController : MonoBehaviour
 
     void DoNormalCameraControls()
     {
+        _secondsSinceStartedTransition = 0;
         Vector2 mouseDelta = Input.GetAxis(xAxis) * Vector2.right + Input.GetAxis(yAxis) * Vector2.up;
 
         rotation.x += mouseDelta.x * sensitivity;
